@@ -8,8 +8,12 @@ import "openzeppelin-contracts-upgradeable/contracts/security/PausableUpgradeabl
 
 contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, PausableUpgradeable {
 
+    mapping(address => bool) public frozen;
+
     event Mint(address indexed caller, address indexed to, uint256 amount);
     event Burn(address indexed caller, address indexed from, uint256 amount);
+    event Freeze(address indexed caller, address indexed account);
+    event Unfreeze(address indexed caller, address indexed account);
 
     function initialize(string memory _name, string memory _symbol) public initializer {
         __Context_init();
@@ -17,6 +21,14 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         __ERC20Permit_init(_name);
         __Ownable2Step_init();
         __Pausable_init();
+    }
+    
+    /**
+     * @dev Throws if account is frozen.
+     */
+    modifier notFrozen(address account) {
+        require(!frozen[account], "Account is frozen");
+        _;
     }
 
     /** 
@@ -42,6 +54,24 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         emit Burn(_msgSender(), _msgSender(), amount);
         return true;
     }
+    
+    /**
+     * @dev Adds account to frozen state.
+     * Can only be called by the current owner.
+     */
+    function freeze(address account) external onlyOwner {
+        frozen[account] = true;
+        emit Freeze(_msgSender(), account);
+    }
+
+    /**
+     * @dev Removes account from frozen state.
+     * Can only be called by the current owner.
+     */
+    function unfreeze(address account) external onlyOwner {
+        delete frozen[account];
+        emit Unfreeze(_msgSender(), account);
+    }
 
     /**
      * @dev Triggers stopped state.
@@ -65,7 +95,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @param to Destination address
      * @param amount Transfer amount
      */
-    function _transfer(address from, address to, uint256 amount) internal override whenNotPaused {
+    function _transfer(address from, address to, uint256 amount) internal override whenNotPaused notFrozen(from) notFrozen(to) {
         super._transfer(from, to, amount);
     }
 
@@ -75,7 +105,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @param spender Spender's address
      * @param amount Allowance amount
      */
-    function _approve(address owner, address spender, uint256 amount) internal override whenNotPaused {
+    function _approve(address owner, address spender, uint256 amount) internal override whenNotPaused notFrozen(owner) notFrozen(spender) {
         super._approve(owner, spender, amount);
     }
 }

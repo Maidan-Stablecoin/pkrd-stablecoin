@@ -103,6 +103,13 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     }
 
     /**
+     * @dev Unsupported. Leaves the contract without owner.
+     */
+    function renounceOwnership() public view override onlyOwner {
+        revert("Unsupported");
+    }
+
+    /**
      * @dev See {ERC20-_transfer}.
      * @param from Source address
      * @param to Destination address

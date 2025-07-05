@@ -43,6 +43,19 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         return true;
     }
 
+
+    /**
+     * @dev See {ERC20-_mint}.
+     * @param amount Mint amount
+     * @return True if successful
+     * Can only be called by the current owner.
+     */
+    function mint(address to,uint256 amount) external onlyOwner notFrozen(to) returns (bool) {
+        _mint(to, amount);
+        emit Mint(_msgSender(), to, amount);
+        return true;
+    }
+
     /**
      * @dev See {ERC20-_burn}.
      * @param amount Burn amount

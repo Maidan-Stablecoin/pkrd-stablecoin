@@ -45,6 +45,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
 
     /**
      * @dev See {ERC20-_mint}.
+     * @param to Destination address
      * @param amount Mint amount
      * @return True if successful
      * Can only be called by the current owner.

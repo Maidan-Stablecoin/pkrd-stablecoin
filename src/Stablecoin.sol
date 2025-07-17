@@ -96,6 +96,8 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     /**
      * @dev See {ERC20-_burn}.
      * @param amount Burn amount
+     * @param seq nonce
+     * @param chain chain id
      * @return True if successful
      * Can only be called by the current auto owner.
      */

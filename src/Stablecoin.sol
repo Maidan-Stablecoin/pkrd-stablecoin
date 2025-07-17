@@ -95,14 +95,6 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     function renounceOwnership() public view override onlyOwner {
         revert("Unsupported");
     }
-    
-    /**
-     * @dev Returns to normal state.
-     * Can only be called by the current owner.
-     */
-    function unpause() external onlyOwner {
-        _unpause();
-    }
 
     /**
      * @dev See {ERC20-_transfer}.

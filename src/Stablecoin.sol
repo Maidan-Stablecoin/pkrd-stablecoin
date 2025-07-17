@@ -81,7 +81,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @return True if successful
      * Can only be called by the current auto owner.
      */
-    function mint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner notFrozen(to) returns (bool) {
+    function autoMint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner notFrozen(to) returns (bool) {
         require(seq == nonce, "Invalid seq");
         require(chain == chainId, "Invalid chain");
         nonce++;

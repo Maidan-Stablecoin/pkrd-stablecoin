@@ -14,6 +14,11 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     event Burn(address indexed caller, address indexed from, uint256 amount);
     event Freeze(address indexed caller, address indexed account);
     event Unfreeze(address indexed caller, address indexed account);
+    error InvalidSequence();
+    error InvalidChainId();
+
+    uint256 public nonce;
+    uint256 public chainId;
 
     function initialize(string memory _name, string memory _symbol) public initializer {
         __Context_init();
@@ -21,6 +26,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         __ERC20Permit_init(_name);
         __Ownable2Step_init();
         __Pausable_init();
+        chainId = block.chainid;
     }
     
     /**
@@ -50,7 +56,10 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @return True if successful
      * Can only be called by the current owner.
      */
-    function mint(address to, uint256 amount) external onlyOwner notFrozen(to) returns (bool) {
+    function mint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyOwner notFrozen(to) returns (bool) {
+        require(seq == nonce, InvalidSequence());
+        require(chain == chainId, InvalidChainId());
+        nonce++;
         _mint(to, amount);
         emit Mint(_msgSender(), to, amount);
         return true;

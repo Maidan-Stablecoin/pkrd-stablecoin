@@ -11,7 +11,9 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     mapping(address => bool) public frozen;
 
     event Mint(address indexed caller, address indexed to, uint256 amount);
+    event AutoMint(address indexed caller, address indexed to, uint256 indexed seq, uint256 amount);
     event Burn(address indexed caller, address indexed from, uint256 amount);
+    event AutoBurn(address indexed caller, address indexed from, uint256 indexed seq, uint256 amount);
     event Freeze(address indexed caller, address indexed account);
     event Unfreeze(address indexed caller, address indexed account);
     event AutoOwnerTransferred(address indexed previousOwner, address indexed newOwner);
@@ -87,6 +89,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         nonce++;
         _mint(to, amount);
         emit Mint(_msgSender(), to, amount);
+        emit AutoMint(_msgSender(), to, seq, amount);
         return true;
     }
 
@@ -96,9 +99,13 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @return True if successful
      * Can only be called by the current auto owner.
      */
-    function autoBurn(uint256 amount) external onlyAutoOwner returns (bool) {
+    function autoBurn(uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner returns (bool) {
+        require(seq == nonce, "Invalid seq");
+        require(chain == chainId, "Invalid chain");
+        nonce++;
         _burn(_msgSender(), amount);
         emit Burn(_msgSender(), _msgSender(), amount);
+        emit AutoBurn(_msgSender(), _msgSender(), seq, amount);
         return true;
     }
 

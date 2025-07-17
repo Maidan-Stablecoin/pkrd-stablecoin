@@ -14,11 +14,21 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     event Burn(address indexed caller, address indexed from, uint256 amount);
     event Freeze(address indexed caller, address indexed account);
     event Unfreeze(address indexed caller, address indexed account);
-    error InvalidSequence();
-    error InvalidChainId();
+    event AutoOwnerTransferred(address indexed previousOwner, address indexed newOwner);
 
     uint256 public nonce;
     uint256 public chainId;
+    address public autoOwner;
+
+    modifier onlyAutoOwner(){
+        require(msg.sender == autoOwner, "Caller is not an auto owner");
+        _;
+    }
+
+    function __AutoOwnerInit(address _autoOwner) internal onlyInitializing {
+        require(_autoOwner != address(0), "Auto owner is zero address");
+        autoOwner = _autoOwner;
+    }
 
     function initialize(string memory _name, string memory _symbol) public initializer {
         __Context_init();
@@ -26,9 +36,22 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         __ERC20Permit_init(_name);
         __Ownable2Step_init();
         __Pausable_init();
+        __AutoOwnerInit(msg.sender);
+
         chainId = block.chainid;
     }
     
+    function transferAutoOwnership(address _newOwner) external onlyOwner {
+        require(_newOwner != address(0), "New auto owner is zero address");
+        emit AutoOwnerTransferred(autoOwner, _newOwner);
+        autoOwner = _newOwner;
+    }
+
+    function renounceAutoOwnership() external onlyOwner {
+        emit AutoOwnerTransferred(autoOwner, address(0));
+        autoOwner = address(0);
+    }
+
     /**
      * @dev Throws if account is frozen.
      */
@@ -53,15 +76,29 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @dev See {ERC20-_mint}.
      * @param to Destination address
      * @param amount Mint amount
+     * @param seq nonce
+     * @param chain chain id
      * @return True if successful
-     * Can only be called by the current owner.
+     * Can only be called by the current auto owner.
      */
-    function mint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyOwner notFrozen(to) returns (bool) {
-        require(seq == nonce, InvalidSequence());
-        require(chain == chainId, InvalidChainId());
+    function mint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner notFrozen(to) returns (bool) {
+        require(seq == nonce, "Invalid seq");
+        require(chain == chainId, "Invalid chain");
         nonce++;
         _mint(to, amount);
         emit Mint(_msgSender(), to, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {ERC20-_burn}.
+     * @param amount Burn amount
+     * @return True if successful
+     * Can only be called by the current auto owner.
+     */
+    function autoBurn(uint256 amount) external onlyAutoOwner returns (bool) {
+        _burn(_msgSender(), amount);
+        emit Burn(_msgSender(), _msgSender(), amount);
         return true;
     }
 

@@ -8,8 +8,8 @@ import "openzeppelin-contracts/contracts/proxy/transparent/TransparentUpgradeabl
 import "../src/Stablecoin.sol";
 
 contract DeployStablecoinScript is Script {
-    string internal constant NAME = "Maidan";
-    string internal constant SYMBOL = "PKRD";
+    string internal constant NAME = "Falcoin";
+    string internal constant SYMBOL = "UAED";
 
     function setUp() public {}
 

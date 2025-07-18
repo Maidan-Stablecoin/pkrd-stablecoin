@@ -17,10 +17,12 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     event Freeze(address indexed caller, address indexed account);
     event Unfreeze(address indexed caller, address indexed account);
     event AutoOwnerTransferred(address indexed previousOwner, address indexed newOwner);
+    event SetAutoMintMaxLimit(uint256 previousLimit, uint256 newLimit);
 
     uint256 public nonce;
     uint256 public chainId;
     address public autoOwner;
+    uint256 public autoMintMaxLimit;
 
     modifier onlyAutoOwner(){
         require(msg.sender == autoOwner, "Caller is not an auto owner");
@@ -29,7 +31,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
 
     function __AutoOwnerInit(address _autoOwner) internal onlyInitializing {
         require(_autoOwner != address(0), "Auto owner is zero address");
-        emit AutoOwnerTransferred(autoOwner, _newOwner);
+        emit AutoOwnerTransferred(autoOwner, _autoOwner);
         autoOwner = _autoOwner;
     }
 
@@ -46,8 +48,8 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     
     function transferAutoOwnership(address _newOwner) external onlyOwner {
         require(_newOwner != address(0), "New auto owner is zero address");
-        emit AutoOwnerTransferred(autoOwner, _newOwner);
         autoOwner = _newOwner;
+        emit AutoOwnerTransferred(autoOwner, _newOwner);
     }
 
     function renounceAutoOwnership() external onlyOwner {
@@ -61,6 +63,16 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     modifier notFrozen(address account) {
         require(!frozen[account], "Account is frozen");
         _;
+    }
+
+    /**
+    *  @dev 
+     * @param limit auto mint max limit
+     * Can only be called by the auto owner.
+     */
+    function setAutoMintMaxLimit(uint256 limit) external onlyAutoOwner {
+        autoMintMaxLimit = limit;
+        emit SetAutoMintMaxLimit(autoMintMaxLimit, limit);
     }
 
     /** 
@@ -87,10 +99,23 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     function autoMint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner notFrozen(to) returns (bool) {
         require(seq == nonce, "Invalid seq");
         require(chain == chainId, "Invalid chain");
+        require(autoMintMaxLimit <= amount, "Execeed auto mint limit");
         nonce++;
         _mint(to, amount);
         emit Mint(_msgSender(), to, amount);
         emit AutoMint(_msgSender(), to, seq, amount);
+        return true;
+    }
+
+    /**
+     * @dev See {ERC20-_burn}.
+     * @param amount Burn amount
+     * @return True if successful
+     * Can only be called by the current owner.
+     */
+    function burn(uint256 amount) external onlyOwner returns (bool) {
+        _burn(_msgSender(), amount);
+        emit Burn(_msgSender(), _msgSender(), amount);
         return true;
     }
 
@@ -106,21 +131,10 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         require(seq == nonce, "Invalid seq");
         require(chain == chainId, "Invalid chain");
         nonce++;
-        _burn(_msgSender(), amount);
-        emit Burn(_msgSender(), _msgSender(), amount);
-        emit AutoBurn(_msgSender(), _msgSender(), seq, amount);
-        return true;
-    }
-
-    /**
-     * @dev See {ERC20-_burn}.
-     * @param amount Burn amount
-     * @return True if successful
-     * Can only be called by the current owner.
-     */
-    function burn(uint256 amount) external onlyOwner returns (bool) {
-        _burn(_msgSender(), amount);
-        emit Burn(_msgSender(), _msgSender(), amount);
+        address owner = owner();
+        _burn(owner, amount);
+        emit Burn(owner, owner, amount);
+        emit AutoBurn(owner,owner, seq, amount);
         return true;
     }
     

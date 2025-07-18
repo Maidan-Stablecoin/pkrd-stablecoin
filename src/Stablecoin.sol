@@ -133,8 +133,8 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         nonce++;
         address owner = owner();
         _burn(owner, amount);
-        emit Burn(owner, owner, amount);
-        emit AutoBurn(owner,owner, seq, amount);
+        emit Burn(autoOwner, owner, amount);
+        emit AutoBurn(autoOwner,owner, seq, amount);
         return true;
     }
     

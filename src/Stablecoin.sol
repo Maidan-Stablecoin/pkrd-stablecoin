@@ -29,6 +29,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
 
     function __AutoOwnerInit(address _autoOwner) internal onlyInitializing {
         require(_autoOwner != address(0), "Auto owner is zero address");
+        emit AutoOwnerTransferred(autoOwner, _newOwner);
         autoOwner = _autoOwner;
     }
 

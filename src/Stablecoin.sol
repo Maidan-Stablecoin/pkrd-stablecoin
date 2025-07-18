@@ -48,8 +48,8 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     
     function transferAutoOwnership(address _newOwner) external onlyOwner {
         require(_newOwner != address(0), "New auto owner is zero address");
-        autoOwner = _newOwner;
         emit AutoOwnerTransferred(autoOwner, _newOwner);
+        autoOwner = _newOwner;
     }
 
     function renounceAutoOwnership() external onlyOwner {
@@ -71,8 +71,8 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * Can only be called by the auto owner.
      */
     function setAutoMintMaxLimit(uint256 limit) external onlyAutoOwner {
-        autoMintMaxLimit = limit;
         emit SetAutoMintMaxLimit(autoMintMaxLimit, limit);
+        autoMintMaxLimit = limit;
     }
 
     /** 
@@ -99,7 +99,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
     function autoMint(address to, uint256 amount, uint256 seq, uint256 chain) external onlyAutoOwner notFrozen(to) returns (bool) {
         require(seq == nonce, "Invalid seq");
         require(chain == chainId, "Invalid chain");
-        require(autoMintMaxLimit <= amount, "Execeed auto mint limit");
+        require(autoMintMaxLimit >= amount, "Execeed auto mint limit");
         nonce++;
         _mint(to, amount);
         emit Mint(_msgSender(), to, amount);

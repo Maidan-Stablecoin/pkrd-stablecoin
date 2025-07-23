@@ -81,7 +81,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @param limit auto mint max limit
      * Can only be called by the auto owner.
      */
-    function setAutoMintMaxLimit(uint256 limit) external onlyOwnerOrAutoOwner {
+    function setAutoMintMaxLimit(uint256 limit) public onlyOwnerOrAutoOwner {
         emit SetAutoMintMaxLimit(autoMintMaxLimit, limit);
         autoMintMaxLimit = limit;
     }

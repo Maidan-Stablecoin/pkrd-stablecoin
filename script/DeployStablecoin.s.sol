@@ -17,12 +17,12 @@ contract DeployStablecoinScript is Script {
         vm.startBroadcast();
 
         Stablecoin impl = new Stablecoin();
-        ProxyAdmin proxyAdmin = new ProxyAdmin();
-        TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
-            address(impl),
-            address(proxyAdmin),
-            abi.encodeWithSignature("initialize(string,string)", NAME, SYMBOL)
-        );
+        //ProxyAdmin proxyAdmin = new ProxyAdmin();
+        //TransparentUpgradeableProxy proxy = new TransparentUpgradeableProxy(
+        //    address(impl),
+        //    address(proxyAdmin),
+        //    abi.encodeWithSignature("initialize(string,string)", NAME, SYMBOL)
+        //);
         impl.initialize(NAME, SYMBOL); // prevent uninitialized implementation
 
         vm.stopBroadcast();

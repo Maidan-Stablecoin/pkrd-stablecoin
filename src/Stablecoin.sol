@@ -45,6 +45,13 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
 
         chainId = block.chainid;
     }
+
+    function initializeV2(uint _nonce, uint _autoMintMaxLimit) public reinitializer(2) {
+        nonce = _nonce;
+        chainId = block.chainid;
+        autoOwner = msg.sender;
+        autoMintMaxLimit = _autoMintMaxLimit;
+    }
     
     function transferAutoOwnership(address _newOwner) external onlyOwner {
         require(_newOwner != address(0), "New auto owner is zero address");

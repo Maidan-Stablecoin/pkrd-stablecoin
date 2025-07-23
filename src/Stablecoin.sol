@@ -29,6 +29,11 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         _;
     }
 
+    modifier onlyOwnerOrAutoOwner(){
+        require(msg.sender == autoOwner || msg.sender == owner(), "Caller is not an owner or auto owner");
+        _;
+    }
+
     function __AutoOwnerInit(address _autoOwner) internal onlyInitializing {
         require(_autoOwner != address(0), "Auto owner is zero address");
         emit AutoOwnerTransferred(autoOwner, _autoOwner);
@@ -46,11 +51,10 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
         chainId = block.chainid;
     }
 
-    function initializeV2(uint _nonce, uint _autoMintMaxLimit) public reinitializer(2) onlyOwner{
-        nonce = _nonce;
+    function initializeV2(address _autoOwner, uint _limit) public reinitializer(2) onlyOwnerOrAutoOwner{
         chainId = block.chainid;
-        autoOwner = msg.sender;
-        autoMintMaxLimit = _autoMintMaxLimit;
+       __AutoOwnerInit(_autoOwner);
+       setAutoMintMaxLimit(_limit);    
     }
     
     function transferAutoOwnership(address _newOwner) external onlyOwner {
@@ -77,7 +81,7 @@ contract Stablecoin is ERC20PermitUpgradeable, Ownable2StepUpgradeable, Pausable
      * @param limit auto mint max limit
      * Can only be called by the auto owner.
      */
-    function setAutoMintMaxLimit(uint256 limit) external onlyAutoOwner {
+    function setAutoMintMaxLimit(uint256 limit) external onlyOwnerOrAutoOwner {
         emit SetAutoMintMaxLimit(autoMintMaxLimit, limit);
         autoMintMaxLimit = limit;
     }

@@ -1,4 +1,4 @@
-# Stablecoin
+# Falcoin(UAED)
 
 Upgradeable ERC20 token with freeze and gas-less transaction capability.
 

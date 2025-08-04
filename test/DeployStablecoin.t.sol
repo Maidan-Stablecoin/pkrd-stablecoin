@@ -30,7 +30,7 @@ contract DeployStablecoinTest is Test {
             address(proxyAdmin),
             abi.encodeWithSignature("initialize(string,string)", NAME, SYMBOL)
         );
-        impl.initialize(NAME, SYMBOL);
+        //impl.initialize(NAME, SYMBOL);
 
         vm.stopPrank();
     }
